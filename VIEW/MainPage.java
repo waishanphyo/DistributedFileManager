@@ -2,6 +2,7 @@ package VIEW;
 
 import javax.swing.*;
 
+import MODEL.LoginModel;
 import MODEL.RegModel;
 
 import java.awt.*;
@@ -43,7 +44,7 @@ public class MainPage extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 dispose();
-                new LoginPage().setVisible(true); // Ensure LoginPage class is defined
+                new LoginPage(new LoginModel()).setVisible(true); // Ensure LoginPage class is defined
             }
         });
 

@@ -2,6 +2,7 @@ package CONTROLLER;
 
 import VIEW.LoginPage;
 import VIEW.RegisterForm;
+import MODEL.LoginModel;
 import MODEL.RegModel;
 
 import java.awt.event.ActionEvent;
@@ -92,6 +93,6 @@ public class RegisterController {
 
     private void navigateToLoginPage() {
         registerForm.dispose(); // Close the registration form
-        new LoginPage().setVisible(true); // Open the login page
+        new LoginPage(new LoginModel()).setVisible(true); // Open the login page
     }
 }

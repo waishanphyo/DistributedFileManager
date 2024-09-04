@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class MySq{
 	    public static void main(String[] args) {
 	        // Database credentials
-	        String url = "jdbc:mysql://127.0.0.1:3306/test";
+	        String url = "jdbc:mysql://127.0.0.1:3306/testb";
 	        String user = "root";
 	        String password = "";
 

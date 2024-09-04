@@ -21,7 +21,7 @@ public class RegModel {
 	        return conn;
 	  }
 	        public boolean registerUser(String name, String password, String email) {
-	            String sql = "INSERT INTO usres (name, password, email) VALUES (?, ?, ?)";
+	            String sql = "INSERT INTO users (name, password, email) VALUES (?, ?, ?)";
 
 	            try (Connection conn = connect(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 	                pstmt.setString(1, name);
