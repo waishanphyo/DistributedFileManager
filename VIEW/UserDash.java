@@ -1,21 +1,37 @@
-package VIEW;
+package VIEW; // Adjust the package name accordingly
 
 import javax.swing.*;
+
+
+
+import Shit.ButtonEditor;
+import Shit.ButtonRenderer;
+import Shit.FileData;
+import Shit.FileServer;
+import Shit.FileService;
+import Shit.FileUploadClient; // Correctly import the FileUploadClient
+import CONTROLLER.Session;
+import MODEL.LoginModel;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.nio.file.Files;
+import java.rmi.*;
+import java.util.List;
 public class UserDash extends JFrame {
     private JPanel containerA, containerB;
     private JLabel nameLabel, imageLabel;
-    private JButton myFileButton, uploadFileButton, downloadedFileButton, logoutButton;
+    private JButton myFileButton, uploadFileButton, logoutButton;
     private JTextField searchBar;
     private JPanel dynamicPanel;
     private Dimension buttonSize = new Dimension(200, 40); // Set button size
     private Color activeButtonColor = new Color(144, 238, 144); // Light green
 
-    public UserDash () {
-        
+    public UserDash() {
         setTitle("UserDash");
         setLayout(new BorderLayout());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -48,9 +64,21 @@ public class UserDash extends JFrame {
 
         // Name label
         gbc.gridy++;
-        nameLabel = new JLabel("Name");
+        nameLabel = new JLabel();
         nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Set the text of the label to the username stored in the session
+        String username = Session.getInstance().getUsername();
+        nameLabel.setText(username);
+
+        // Add the label to the container
         containerA.add(nameLabel, gbc);
+
+        // Search bar
+        gbc.gridy++;
+        searchBar = new JTextField("Search...");
+        searchBar.setPreferredSize(new Dimension(200, 30)); // Adjust the size
+        containerA.add(searchBar, gbc);
 
         // MyFile button
         gbc.gridy++;
@@ -65,11 +93,7 @@ public class UserDash extends JFrame {
         uploadFileButton.setPreferredSize(buttonSize);
         containerA.add(uploadFileButton, gbc);
 
-        // DownloadedFile button
-        gbc.gridy++;
-        downloadedFileButton = new JButton("Downloaded File", new ImageIcon("path/to/arrowicon.png")); // Replace with your icon
-        downloadedFileButton.setPreferredSize(buttonSize);
-        containerA.add(downloadedFileButton, gbc);
+       
 
         // Logout button (spanning two columns)
         gbc.gridy++;
@@ -78,13 +102,11 @@ public class UserDash extends JFrame {
         logoutButton.setPreferredSize(buttonSize);
         logoutButton.setHorizontalAlignment(SwingConstants.CENTER);
         containerA.add(logoutButton, gbc);
-
+        logoutButton.addActionListener(e -> {
+            Session.getInstance().clearSession();
+            new LoginPage(new LoginModel()).setVisible(true); // Redirect to login page
+        });
         // Add components to Container B
-        searchBar = new JTextField("Search...");
-        searchBar.setPreferredSize(new Dimension(300, 30));
-        containerB.add(searchBar, BorderLayout.NORTH);
-
-        // Dynamic panel for showing content
         dynamicPanel = new JPanel();
         containerB.add(dynamicPanel, BorderLayout.CENTER);
 
@@ -99,25 +121,160 @@ public class UserDash extends JFrame {
         myFileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                updateDynamicPanel("MyFile");
+            	new FileServer();
+            	displayFiles();
             }
         });
 
         uploadFileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                updateDynamicPanel("UploadFile");
+                // Open FileUploadClient when the UploadFile button is clicked
+            	new FileServer();
+                new FileUploadClient(); 
             }
         });
 
-        downloadedFileButton.addActionListener(new ActionListener() {
+     
+
+        searchBar.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    performSearch();
+                }
+            }
+        });
+
+        searchBar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                updateDynamicPanel("Downloaded File");
+                performSearch();
             }
         });
 
+        searchBar.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                searchBar.setForeground(activeButtonColor); // Change color when active
+                if (searchBar.getText().equals("Search...")) {
+                    searchBar.setText("");
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                searchBar.setForeground(Color.BLACK); // Reset to default when inactive
+                if (searchBar.getText().isEmpty()) {
+                    searchBar.setText("Search...");
+                }
+            }
+        });
+        setActiveButton(myFileButton);
+
+        // Start FileServer and display files in a separate thread
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    new FileServer();
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            displayFiles();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+       
         setVisible(true);
+    }
+    
+    private void setActiveButton(JButton activeButton) {
+        // Reset all buttons to default color
+        myFileButton.setForeground(Color.BLACK);
+        uploadFileButton.setForeground(Color.BLACK);
+        //downloadedFileButton.setForeground(Color.BLACK);
+
+        // Set the active button's color
+        activeButton.setForeground(activeButtonColor);
+    }
+    private void displayFiles() {
+        try {
+            // Connect to RMI service
+            FileService fileService = (FileService) Naming.lookup("rmi://localhost/FileService");
+
+            // Assuming userId = 1
+            int id=Session.getInstance().getUserid();
+            List<FileData> files = fileService.getAllUploadedFiles(id);
+
+            dynamicPanel.removeAll();
+            dynamicPanel.setLayout(new BorderLayout());
+
+            String[] columnNames = {"Filename", "Uploaded Time", "Access Level"};
+            Object[][] data = new Object[files.size()][3]; 
+
+            for (int i = 0; i < files.size(); i++) {
+                FileData file = files.get(i);
+                data[i][0] = file.getFilename();  // Filename (this will be a button)
+                data[i][1] = file.getUploadTime();
+                data[i][2] = file.getAccessLevel();
+            }
+
+
+JTable fileTable = new JTable(data, columnNames);
+
+// Set custom renderer and editor for the "Filename" column
+fileTable.getColumn("Filename").setCellRenderer(new ButtonRenderer());
+fileTable.getColumn("Filename").setCellEditor(new ButtonEditor(fileTable));
+
+JScrollPane scrollPane = new JScrollPane(fileTable);
+dynamicPanel.add(scrollPane, BorderLayout.CENTER);
+dynamicPanel.revalidate();
+dynamicPanel.repaint();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private JButton createDownloadButton(String filename) {
+        JButton button = new JButton(filename);
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                downloadFile(filename);
+                System.out.print("A");
+            }
+        });
+        return button;
+    }
+    private void downloadFile(String filename) {
+        try {
+            // Connect to RMI service
+            FileService fileService = (FileService) Naming.lookup("rmi://localhost/FileService");
+            System.out.print("B");
+            // Download file data
+            byte[] fileData = fileService.downloadFile(filename);
+
+            if (fileData != null) {
+                // Save to user's desktop by default
+                String userDesktop = System.getProperty("user.home") + "/Desktop";
+                File defaultFile = new File(userDesktop, filename);
+
+                // Write file to default desktop location
+                Files.write(defaultFile.toPath(), fileData);
+                JOptionPane.showMessageDialog(null, "File downloaded successfully to Desktop: " + defaultFile.getAbsolutePath());
+            } else {
+                JOptionPane.showMessageDialog(null, "File not found.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error downloading file.");
+        }
     }
 
     private void updateDynamicPanel(String content) {
@@ -125,14 +282,54 @@ public class UserDash extends JFrame {
         dynamicPanel.add(new JLabel(content + " content goes here."));
         dynamicPanel.revalidate();
         dynamicPanel.repaint();
-        
+
         // Update button colors based on active state
         myFileButton.setForeground(content.equals("MyFile") ? activeButtonColor : Color.BLACK);
         uploadFileButton.setForeground(content.equals("UploadFile") ? activeButtonColor : Color.BLACK);
-        downloadedFileButton.setForeground(content.equals("Downloaded File") ? activeButtonColor : Color.BLACK);
+       // downloadedFileButton.setForeground(content.equals("Downloaded File") ? activeButtonColor : Color.BLACK);
+    }
+
+    private void performSearch() {
+        String searchQuery = searchBar.getText().trim();
+        if (!searchQuery.isEmpty() && !searchQuery.equals("Search...")) {
+            try {
+                // Connect to RMI service
+                FileService fileService = (FileService) Naming.lookup("rmi://localhost/FileService");
+
+                // Retrieve files by username from the search query
+                List<FileData> files = fileService.searchFilesByUser(searchQuery);
+
+                dynamicPanel.removeAll();
+                dynamicPanel.setLayout(new BorderLayout());
+
+                String[] columnNames = {"Filename", "Uploaded Time", "Access Level"};
+                Object[][] data = new Object[files.size()][3];
+
+                for (int i = 0; i < files.size(); i++) {
+                    FileData file = files.get(i);
+                    data[i][0] = file.getFilename();
+                    data[i][1] = file.getUploadTime();
+                    data[i][2] = file.getAccessLevel();
+                }
+
+                JTable fileTable = new JTable(data, columnNames);
+                fileTable.getColumn("Filename").setCellRenderer(new ButtonRenderer());
+                fileTable.getColumn("Filename").setCellEditor(new ButtonEditor(fileTable));
+
+                JScrollPane scrollPane = new JScrollPane(fileTable);
+                dynamicPanel.add(scrollPane, BorderLayout.CENTER);
+                dynamicPanel.revalidate();
+                dynamicPanel.repaint();
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Error performing search: " + e.getMessage());
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Please enter a valid search query.");
+        }
     }
 
     public static void main(String[] args) {
-        new UserDash ();
+        new UserDash();
     }
 }

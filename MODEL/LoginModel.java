@@ -1,26 +1,28 @@
 package MODEL;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class LoginModel {
-    private static final String URL = "jdbc:mysql://localhost/dfm";
-    private static final String USER = "root"; // Replace with your DB username
-    private static final String PASSWORD = ""; // Replace with your DB password
-
-    public boolean authenticate(String name, String password) {
-        boolean isValid = false;
+    private static final String URL = "jdbc:mysql://localhost:3306/dfm"; // Adjust the database name and URL
+    private static final String USER = "root"; // Database username
+    private static final String PASSWORD = ""; // Database password
+    
+    public int authenticate(String name, String password) {
+        int userId = -1;
         try {
             Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-            String sql = "SELECT * FROM users WHERE name = ? AND password = ?";
+            String sql = "SELECT id FROM users WHERE name = ? AND password = ?";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, name);
             pstmt.setString(2, password);
+            
             ResultSet rs = pstmt.executeQuery();
-            System.out.print("A");
+            
             if (rs.next()) {
-                isValid = true;
+                userId = rs.getInt("id"); // Fetch the user ID from the database
             }
 
             rs.close();
@@ -29,6 +31,6 @@ public class LoginModel {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return isValid;
+        return userId; // Return -1 if authentication fails, or the userId if successful
     }
 }

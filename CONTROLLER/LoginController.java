@@ -26,18 +26,21 @@ public class LoginController {
     }
 
     private void authenticate() {
-        String name = view.getName();
-        String password = view.getPassword();
-        boolean isValid = model.authenticate(name, password);
+    	
+    	    String name = view.getName();
+    	    String password = view.getPassword();
+    	    int userId = model.authenticate(name, password);
 
-        if (isValid) {
-            JOptionPane.showMessageDialog(view, "Login successful");
-            view.dispose();
-            new UserDash().setVisible(true);
-            // Navigate to user dashboard or next screen
-        } else {
-            view.setNameError("User name or password is incorrect");
-            view.setPasswordError("User name or password is incorrect");
-        }
-    }
+    	    if (userId != -1) {
+    	        // Set the session with username and userId
+    	        Session.getInstance().setSession(name, userId);
+
+    	        JOptionPane.showMessageDialog(view, "Login successful");
+    	        view.dispose();
+    	        new UserDash().setVisible(true);
+    	    } else {
+    	        view.setNameError("User name or password is incorrect");
+    	        view.setPasswordError("User name or password is incorrect");
+    	    }
+    	}
 }
