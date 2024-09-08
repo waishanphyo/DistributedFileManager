@@ -18,13 +18,16 @@ public class ButtonEditor extends AbstractCellEditor implements TableCellEditor,
     private JButton button;
     private String filename;
 
+  
+
     public ButtonEditor(JTable table) {
-        button = new JButton();
+		// TODO Auto-generated constructor stub
+    	button = new JButton();
         button.setOpaque(true);
         button.addActionListener(this);
-    }
+	}
 
-    @Override
+	@Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
         filename = (value == null) ? "" : value.toString();
         button.setText(filename);

@@ -8,36 +8,28 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+
+
 public class RegisterForm extends JFrame {
     private JTextField nameField, emailField;
     private JPasswordField passwordField, confirmPasswordField;
     private JLabel nameError, emailError, passwordError, confirmPasswordError;
     private JButton registerButton;
 
+
     public RegisterForm(RegModel model) {
         setTitle("Register Page");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setUndecorated(true);
+        setSize(1000, 800); // Set size to 1000x800
+        setLocationRelativeTo(null); // Center the window on the screen
+        setUndecorated(true);  // Optional: removes window decorations like the title bar
 
-        JPanel container = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                ImageIcon backgroundImage = new ImageIcon("src/ING/Nigh.jpg");
-                g.drawImage(backgroundImage.getImage(), 0, 0, getWidth(), getHeight(), this);
-            }
-        };
+        // Create a container with GridBagLayout to center everything
+        JPanel container = new JPanel();
         container.setLayout(new GridBagLayout());
+        container.setBackground(Color.WHITE);  // Set a plain white background
 
-        JPanel formPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.setColor(new Color(242, 242, 242, 154));
-                g.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
-            }
-        };
+        JPanel formPanel = new JPanel();
         formPanel.setLayout(new GridBagLayout());
         formPanel.setPreferredSize(new Dimension(600, 700));
         formPanel.setOpaque(false);
@@ -46,14 +38,13 @@ public class RegisterForm extends JFrame {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Add the header image at the center, above the name field
+        // Add the header label at the center, above the name field
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
-        ImageIcon homeIcon = new ImageIcon("src/ING/head.png");
-        Image scaledImage = homeIcon.getImage().getScaledInstance(75, 75, Image.SCALE_SMOOTH);
-        JLabel headerLabel = new JLabel(new ImageIcon(scaledImage));
+        JLabel headerLabel = new JLabel("Register");
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 24));
         formPanel.add(headerLabel, gbc);
 
         // Add the name label and field with bold font
@@ -183,12 +174,14 @@ public class RegisterForm extends JFrame {
         registerButton.setForeground(Color.WHITE);
         formPanel.add(registerButton, gbc);
 
-        container.add(formPanel);
+        // Add formPanel to the container
+        container.add(formPanel, gbc);
         add(container);
+
         setVisible(true);
 
         // Initialize the controller
-        new RegisterController(this,model);
+        new RegisterController(this, model);
     }
 
    

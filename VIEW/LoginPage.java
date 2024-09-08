@@ -17,7 +17,7 @@ public class LoginPage extends JFrame {
 
     public LoginPage(LoginModel model) {
         setTitle("Login Form");
-        setSize(400, 300);
+        setSize(1000, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());

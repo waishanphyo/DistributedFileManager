@@ -10,6 +10,8 @@ import Shit.FileData;
 import Shit.FileServer;
 import Shit.FileService;
 import Shit.FileUploadClient; // Correctly import the FileUploadClient
+import Shit.TrashEditor;
+import Shit.TrashRenderer;
 import CONTROLLER.Session;
 import MODEL.LoginModel;
 
@@ -203,79 +205,89 @@ public class UserDash extends JFrame {
         // Set the active button's color
         activeButton.setForeground(activeButtonColor);
     }
-    private void displayFiles() {
-        try {
-            // Connect to RMI service
-            FileService fileService = (FileService) Naming.lookup("rmi://localhost/FileService");
+   public void displayFiles() {
+    try {
+        // Connect to RMI service
+        FileService fileService = (FileService) Naming.lookup("rmi://localhost/FileService");
 
-            // Assuming userId = 1
-            int id=Session.getInstance().getUserid();
-            List<FileData> files = fileService.getAllUploadedFiles(id);
+        // Assuming userId is fetched from the session
+        int currentUserId = Session.getInstance().getUserid();
+        List<FileData> files = fileService.getAllUploadedFiles(currentUserId);
 
-            dynamicPanel.removeAll();
-            dynamicPanel.setLayout(new BorderLayout());
+        dynamicPanel.removeAll();
+        dynamicPanel.setLayout(new BorderLayout());
 
-            String[] columnNames = {"Filename", "Uploaded Time", "Access Level"};
-            Object[][] data = new Object[files.size()][3]; 
+        String[] columnNames = {"Filename", "Uploaded Time", "Access Level", "Actions"};
+        Object[][] data = new Object[files.size()][4]; // Updated to include Actions column
 
-            for (int i = 0; i < files.size(); i++) {
-                FileData file = files.get(i);
-                data[i][0] = file.getFilename();  // Filename (this will be a button)
-                data[i][1] = file.getUploadTime();
-                data[i][2] = file.getAccessLevel();
-            }
-
-
-JTable fileTable = new JTable(data, columnNames);
-
-// Set custom renderer and editor for the "Filename" column
-fileTable.getColumn("Filename").setCellRenderer(new ButtonRenderer());
-fileTable.getColumn("Filename").setCellEditor(new ButtonEditor(fileTable));
-
-JScrollPane scrollPane = new JScrollPane(fileTable);
-dynamicPanel.add(scrollPane, BorderLayout.CENTER);
-dynamicPanel.revalidate();
-dynamicPanel.repaint();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private JButton createDownloadButton(String filename) {
-        JButton button = new JButton(filename);
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                downloadFile(filename);
-                System.out.print("A");
-            }
-        });
-        return button;
-    }
-    private void downloadFile(String filename) {
-        try {
-            // Connect to RMI service
-            FileService fileService = (FileService) Naming.lookup("rmi://localhost/FileService");
-            System.out.print("B");
-            // Download file data
-            byte[] fileData = fileService.downloadFile(filename);
-
-            if (fileData != null) {
-                // Save to user's desktop by default
-                String userDesktop = System.getProperty("user.home") + "/Desktop";
-                File defaultFile = new File(userDesktop, filename);
-
-                // Write file to default desktop location
-                Files.write(defaultFile.toPath(), fileData);
-                JOptionPane.showMessageDialog(null, "File downloaded successfully to Desktop: " + defaultFile.getAbsolutePath());
+        for (int i = 0; i < files.size(); i++) {
+            FileData file = files.get(i);
+            data[i][0] = file.getFilename(); // Filename (button)
+            data[i][1] = file.getUploadTime();
+            data[i][2] = file.getAccessLevel();
+            // Add Trash icon if the current user is the owner
+            if (file.isOwner(currentUserId)) {
+                data[i][3] = "Delete"; // Set "Delete" as the action for owners
             } else {
-                JOptionPane.showMessageDialog(null, "File not found.");
+                data[i][3] = ""; // No action button for non-owners
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Error downloading file.");
         }
+
+        JTable fileTable = new JTable(data, columnNames);
+
+        // Set custom renderer and editor for each column
+        fileTable.getColumn("Filename").setCellRenderer(new ButtonRenderer());
+        fileTable.getColumn("Filename").setCellEditor(new ButtonEditor(fileTable));
+        
+        fileTable.getColumn("Actions").setCellRenderer(new TrashRenderer());
+        fileTable.getColumn("Actions").setCellEditor(new TrashEditor(fileTable, currentUserId));
+
+        JScrollPane scrollPane = new JScrollPane(fileTable);
+        dynamicPanel.add(scrollPane, BorderLayout.CENTER);
+        dynamicPanel.revalidate();
+        dynamicPanel.repaint();
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+
+    
+    }
+//
+//    private JButton createDownloadButton(String filename) {
+//        JButton button = new JButton(filename);
+//        button.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                downloadFile(filename);
+//                System.out.print("A");
+//            }
+//        });
+//        return button;
+//    }
+//    private void downloadFile(String filename) {
+//        try {
+//            // Connect to RMI service
+//            FileService fileService = (FileService) Naming.lookup("rmi://localhost/FileService");
+//            System.out.print("B");
+//            // Download file data
+//            byte[] fileData = fileService.downloadFile(filename);
+//
+//            if (fileData != null) {
+//                // Save to user's desktop by default
+//                String userDesktop = System.getProperty("user.home") + "/Desktop";
+//                File defaultFile = new File(userDesktop, filename);
+//
+//                // Write file to default desktop location
+//                Files.write(defaultFile.toPath(), fileData);
+//                JOptionPane.showMessageDialog(null, "File downloaded successfully to Desktop: " + defaultFile.getAbsolutePath());
+//            } else {
+//                JOptionPane.showMessageDialog(null, "File not found.");
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            JOptionPane.showMessageDialog(null, "Error downloading file.");
+//        }
+//    }
 
     private void updateDynamicPanel(String content) {
         dynamicPanel.removeAll();
