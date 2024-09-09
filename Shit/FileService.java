@@ -25,6 +25,7 @@ public interface FileService extends Remote {
 	//List<FileData> searchFilesByUser(String username) throws RemoteException;
 
 	List<FileData> searchFilesByUser(String searchQuery) throws RemoteException;
-	 boolean deleteFile(String filename) throws RemoteException;
+	boolean deleteFile(String filename) throws RemoteException;
+	
 	
 }

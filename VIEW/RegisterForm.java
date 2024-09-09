@@ -5,10 +5,6 @@ import MODEL.RegModel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-
 
 public class RegisterForm extends JFrame {
     private JTextField nameField, emailField;
@@ -16,167 +12,131 @@ public class RegisterForm extends JFrame {
     private JLabel nameError, emailError, passwordError, confirmPasswordError;
     private JButton registerButton;
 
-
     public RegisterForm(RegModel model) {
         setTitle("Register Page");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800); // Set size to 1000x800
         setLocationRelativeTo(null); // Center the window on the screen
-        setUndecorated(true);  // Optional: removes window decorations like the title bar
 
-        // Create a container with GridBagLayout to center everything
-        JPanel container = new JPanel();
-        container.setLayout(new GridBagLayout());
-        container.setBackground(Color.WHITE);  // Set a plain white background
+        // Main panel with background color #ADD8E6
+        JPanel mainPanel = new JPanel();
+        mainPanel.setBackground(Color.decode("#ADD8E6"));
+        mainPanel.setLayout(new GridBagLayout());
 
+        // Form panel with white transparent background, centered in the main window
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new GridBagLayout());
-        formPanel.setPreferredSize(new Dimension(600, 700));
-        formPanel.setOpaque(false);
+        formPanel.setBackground(new Color(255, 255, 255, 200)); // White transparent
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        formPanel.setOpaque(true);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        // Add the header label at the center, above the name field
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
-        JLabel headerLabel = new JLabel("Register");
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        formPanel.add(headerLabel, gbc);
 
-        // Add the name label and field with bold font
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.LINE_END;
+        // Add image at the top
+        JLabel imageLabel = new JLabel(new ImageIcon(new ImageIcon("src/ING/file.png").getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH)));
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        formPanel.add(imageLabel, gbc);
+
+        // Name Label
         JLabel nameLabel = new JLabel("Name:");
         nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        gbc.gridwidth = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         formPanel.add(nameLabel, gbc);
 
+        // Name Text Field
+        nameField = new JTextField(25); // Increased width
+        nameField.setPreferredSize(new Dimension(150, 30)); // Increased height
+        nameField.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        nameField = new JTextField(15);
-        nameField.setPreferredSize(new Dimension(0, 30)); // Height adjustment
-        nameField.setFont(new Font("Arial", Font.PLAIN, 14));
-        nameField.setBorder(BorderFactory.createCompoundBorder(
-                nameField.getBorder(),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5))); // Padding
-        nameField.setBackground(Color.WHITE);
-        nameField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true)); // Rounded border
         formPanel.add(nameField, gbc);
 
+        // Name Error Label
         nameError = new JLabel("");
         nameError.setForeground(Color.RED);
-        nameError.setPreferredSize(new Dimension(200, 15));
+        gbc.gridx = 1;
         gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.LINE_START;
         formPanel.add(nameError, gbc);
 
-        // Add the password label and field
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.LINE_END;
+        // Password Label
         JLabel passwordLabel = new JLabel("Password:");
         passwordLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 3;
         formPanel.add(passwordLabel, gbc);
 
+        // Password Field
+        passwordField = new JPasswordField(25); // Increased width
+        passwordField.setPreferredSize(new Dimension(150, 30)); // Increased height
+        passwordField.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        passwordField = new JPasswordField(15);
-        passwordField.setPreferredSize(new Dimension(0, 30)); // Height adjustment
-        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
-        passwordField.setBorder(BorderFactory.createCompoundBorder(
-                passwordField.getBorder(),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5))); // Padding
-        passwordField.setBackground(Color.WHITE);
-        passwordField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true)); // Rounded border
         formPanel.add(passwordField, gbc);
 
+        // Password Error Label
         passwordError = new JLabel("");
         passwordError.setForeground(Color.RED);
-        passwordError.setPreferredSize(new Dimension(300, 15));
+        gbc.gridx = 1;
         gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.LINE_START;
         formPanel.add(passwordError, gbc);
 
-        // Add the confirm password label and field
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.LINE_END;
+        // Confirm Password Label
         JLabel confirmPasswordLabel = new JLabel("Confirm Password:");
         confirmPasswordLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 5;
         formPanel.add(confirmPasswordLabel, gbc);
 
+        // Confirm Password Field
+        confirmPasswordField = new JPasswordField(25); // Increased width
+        confirmPasswordField.setPreferredSize(new Dimension(150, 30)); // Increased height
+        confirmPasswordField.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        confirmPasswordField = new JPasswordField(15);
-        confirmPasswordField.setPreferredSize(new Dimension(0, 30)); // Height adjustment
-        confirmPasswordField.setFont(new Font("Arial", Font.PLAIN, 14));
-        confirmPasswordField.setBorder(BorderFactory.createCompoundBorder(
-                confirmPasswordField.getBorder(),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5))); // Padding
-        confirmPasswordField.setBackground(Color.WHITE);
-        confirmPasswordField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true)); // Rounded border
         formPanel.add(confirmPasswordField, gbc);
 
+        // Confirm Password Error Label
         confirmPasswordError = new JLabel("");
         confirmPasswordError.setForeground(Color.RED);
-        confirmPasswordError.setPreferredSize(new Dimension(300, 15));
+        gbc.gridx = 1;
         gbc.gridy = 6;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.LINE_START;
         formPanel.add(confirmPasswordError, gbc);
 
-        // Add the email label and field
-        gbc.gridx = 0;
-        gbc.gridy = 7;
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.LINE_END;
+        // Email Label
         JLabel emailLabel = new JLabel("Email:");
         emailLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 7;
         formPanel.add(emailLabel, gbc);
 
+        // Email Field
+        emailField = new JTextField(25); // Increased width
+        emailField.setPreferredSize(new Dimension(150, 30)); // Increased height
+        emailField.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        emailField = new JTextField(15);
-        emailField.setPreferredSize(new Dimension(0, 30)); // Height adjustment
-        emailField.setFont(new Font("Arial", Font.PLAIN, 14));
-        emailField.setBorder(BorderFactory.createCompoundBorder(
-                emailField.getBorder(),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5))); // Padding
-        emailField.setBackground(Color.WHITE);
-        emailField.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true)); // Rounded border
         formPanel.add(emailField, gbc);
 
+        // Email Error Label
         emailError = new JLabel("");
         emailError.setForeground(Color.RED);
-        emailError.setPreferredSize(new Dimension(200, 15));
+        gbc.gridx = 1;
         gbc.gridy = 8;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.LINE_START;
         formPanel.add(emailError, gbc);
 
-        // Center the register button
-        gbc.gridx = 0;
-        gbc.gridy = 9;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
+        // Register Button
         registerButton = new JButton("Register");
-        registerButton.setPreferredSize(new Dimension(200, 40));
-        registerButton.setFont(new Font("Arial", Font.BOLD, 16));
-        registerButton.setBackground(Color.BLACK);
-        registerButton.setForeground(Color.WHITE);
+        registerButton.setPreferredSize(new Dimension(100, 30));
+        gbc.gridx = -1;
+        gbc.gridy = 30;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
         formPanel.add(registerButton, gbc);
 
-        // Add formPanel to the container
-        container.add(formPanel, gbc);
-        add(container);
+        // Center the form panel inside the main panel
+        mainPanel.add(formPanel, gbc);
+
+        // Add the main panel to the frame
+        add(mainPanel, BorderLayout.CENTER);
 
         setVisible(true);
 
@@ -184,12 +144,8 @@ public class RegisterForm extends JFrame {
         new RegisterController(this, model);
     }
 
-   
-
-
-
-
-	public JTextField getNameField() {
+    // Getter methods for form components
+    public JTextField getNameField() {
         return nameField;
     }
 
@@ -250,11 +206,9 @@ public class RegisterForm extends JFrame {
         repaint();
     }
 
-  public static void main(String[] args) {
+    public static void main(String[] args) {
         // Pass a dummy model or initialize it properly
         RegModel model = new RegModel();
-//      new RegisterController(new RegisterForm(),new );
         new RegisterForm(model);
-	
-   }
+    }
 }

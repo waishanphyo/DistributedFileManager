@@ -10,7 +10,7 @@ import java.sql.SQLException;
 public class FileServer {
     private Registry registry;
     private Connection connection;
-
+   // private Registry rg;
     public FileServer() {
         try {
             // Database connection setup
@@ -18,9 +18,10 @@ public class FileServer {
 
             // Create and export RMI service
             FileService fileService = new FileServiceImpl(connection);
-            registry = LocateRegistry.createRegistry(1099);
+            registry = LocateRegistry.createRegistry(1077);
+            //rg=LocateRegistry.createRegistry(1022);
             Naming.rebind("rmi://localhost/FileService", fileService);
-
+            
             System.out.println("File Service is running...");
         } catch (Exception e) {
             e.printStackTrace();

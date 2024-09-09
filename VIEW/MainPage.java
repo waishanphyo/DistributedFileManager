@@ -15,15 +15,26 @@ public class MainPage extends JFrame {
         setLocationRelativeTo(null); // Center the frame
         setUndecorated(false); // Allow default window decorations
 
-        // Container with default background color
+        // Container with background color #ADD8E6
         JPanel container = new JPanel();
         container.setLayout(new GridBagLayout()); // Set GridBagLayout for centering
-        container.setBackground(UIManager.getColor("Panel.background")); // Default background
+        container.setBackground(Color.decode("#ADD8E6")); // Set background color to #ADD8E6
 
-        // GridBagConstraints to position the buttons
+        // GridBagConstraints to position the header and buttons
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10); // Add spacing between buttons
+        gbc.insets = new Insets(10, 10, 10, 10); // Add spacing between components
         gbc.anchor = GridBagConstraints.CENTER;
+
+        // Header label "Distributed Files Manager"
+        JLabel headerLabel = new JLabel("Distributed Files Manager");
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 24)); // Bold, large font
+        headerLabel.setForeground(Color.BLACK);
+        
+        // Set header to be centered and span two columns
+        gbc.gridx = 0;
+        gbc.gridy = 0; // Set the header position
+        gbc.gridwidth = 2; // Make it span across two columns
+        container.add(headerLabel, gbc);
 
         // Set button size
         Dimension buttonSize = new Dimension(150, 50); // Equal button sizes
@@ -87,11 +98,14 @@ public class MainPage extends JFrame {
         });
 
         // Add Login button to the container
-        gbc.gridx = 0; // Set the position for the first button
+        gbc.gridx = 0; // Set the position for the Login button
+        gbc.gridy = 1; // Position it below the header
+        gbc.gridwidth = 1; // Reset to single column width
         container.add(loginButton, gbc);
 
         // Add Register button next to Login button
-        gbc.gridx = 1; // Set the position for the second button
+        gbc.gridx = 1; // Set the position for the Register button
+        gbc.gridy = 1; // Same row as Login button
         container.add(registerButton, gbc);
 
         // Add container to the frame

@@ -1,8 +1,8 @@
 package VIEW; // Adjust the package name accordingly
 
 import javax.swing.*;
-
-
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 
 import Shit.ButtonEditor;
 import Shit.ButtonRenderer;
@@ -56,7 +56,7 @@ public class UserDash extends JFrame {
         gbc.insets = new Insets(10, 10, 10, 10);
 
         // Image icon (Circle)
-        ImageIcon icon = new ImageIcon("src/ING/Plant.jpg"); // Replace with your image path
+        ImageIcon icon = new ImageIcon("src/ING/file.png"); // Replace with your image path
         Image image = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(image);
         imageLabel = new JLabel(scaledIcon);
@@ -84,14 +84,14 @@ public class UserDash extends JFrame {
 
         // MyFile button
         gbc.gridy++;
-        myFileButton = new JButton("MyFile", new ImageIcon("path/to/fileicon.png")); // Replace with your icon
+        myFileButton = new JButton("MyFile", new ImageIcon("May Be later")); 
         myFileButton.setPreferredSize(buttonSize);
         myFileButton.setForeground(activeButtonColor); // Set default active color
         containerA.add(myFileButton, gbc);
 
         // UploadFile button
         gbc.gridy++;
-        uploadFileButton = new JButton("UploadFile", new ImageIcon("path/to/plusicon.png")); // Replace with your icon
+        uploadFileButton = new JButton("UploadFile", new ImageIcon("May be Later"));
         uploadFileButton.setPreferredSize(buttonSize);
         containerA.add(uploadFileButton, gbc);
 
@@ -159,7 +159,7 @@ public class UserDash extends JFrame {
             @Override
             public void focusGained(java.awt.event.FocusEvent evt) {
                 searchBar.setForeground(activeButtonColor); // Change color when active
-                if (searchBar.getText().equals("Search...")) {
+                if (searchBar.getText().equals("Search By Name")) {
                     searchBar.setText("");
                 }
             }
@@ -205,52 +205,67 @@ public class UserDash extends JFrame {
         // Set the active button's color
         activeButton.setForeground(activeButtonColor);
     }
-   public void displayFiles() {
-    try {
-        // Connect to RMI service
-        FileService fileService = (FileService) Naming.lookup("rmi://localhost/FileService");
+    public void displayFiles() {
+        try {
+            // Connect to RMI serviceS
+            FileService fileService = (FileService) Naming.lookup("rmi://localhost/FileService");
 
-        // Assuming userId is fetched from the session
-        int currentUserId = Session.getInstance().getUserid();
-        List<FileData> files = fileService.getAllUploadedFiles(currentUserId);
+            // Assuming userId is fetched from the session
+            int currentUserId = Session.getInstance().getUserid();
+            List<FileData> files = fileService.getAllUploadedFiles(currentUserId);
 
-        dynamicPanel.removeAll();
-        dynamicPanel.setLayout(new BorderLayout());
+            dynamicPanel.removeAll();
+            dynamicPanel.setLayout(new BorderLayout());
 
-        String[] columnNames = {"Filename", "Uploaded Time", "Access Level", "Actions"};
-        Object[][] data = new Object[files.size()][4]; // Updated to include Actions column
+            String[] columnNames = {"Filename", "Uploaded Time", "Access Level", "Actions"};
+            Object[][] data = new Object[files.size()][4]; // Updated to include Actions column
 
-        for (int i = 0; i < files.size(); i++) {
-            FileData file = files.get(i);
-            data[i][0] = file.getFilename(); // Filename (button)
-            data[i][1] = file.getUploadTime();
-            data[i][2] = file.getAccessLevel();
-            // Add Trash icon if the current user is the owner
-            if (file.isOwner(currentUserId)) {
-                data[i][3] = "Delete"; // Set "Delete" as the action for owners
-            } else {
-                data[i][3] = ""; // No action button for non-owners
+            for (int i = 0; i < files.size(); i++) {
+                FileData file = files.get(i);
+                data[i][0] = file.getFilename(); // Filename (button)
+                data[i][1] = file.getUploadTime();
+                data[i][2] = file.getAccessLevel();
+                // Add Trash icon if the current user is the owner
+                if (file.isOwner(currentUserId)) {
+                    data[i][3] = "Delete"; // Set "Delete" as the action for owners
+                } else {
+                    data[i][3] = ""; // No action button for non-owners
+                }
             }
+
+            JTable fileTable = new JTable(data, columnNames) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    // Make only the Actions column editable
+                    return column == 3;
+                }
+            };
+
+            // Set custom renderer and editor for each column
+            fileTable.getColumn("Filename").setCellRenderer(new ButtonRenderer());
+            fileTable.getColumn("Filename").setCellEditor(new ButtonEditor(fileTable));
+            
+            fileTable.getColumn("Actions").setCellRenderer(new TrashRenderer());
+            fileTable.getColumn("Actions").setCellEditor(new TrashEditor(fileTable, currentUserId));
+
+            // Set bold font for table headers
+            JTableHeader header = fileTable.getTableHeader();
+            header.setFont(header.getFont().deriveFont(Font.BOLD));
+
+            // Center align data in specific columns
+            DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+            centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+            fileTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer); // Uploaded Time
+            fileTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer); // Access Level
+
+            JScrollPane scrollPane = new JScrollPane(fileTable);
+            dynamicPanel.add(scrollPane, BorderLayout.CENTER);
+            dynamicPanel.revalidate();
+            dynamicPanel.repaint();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        JTable fileTable = new JTable(data, columnNames);
-
-        // Set custom renderer and editor for each column
-        fileTable.getColumn("Filename").setCellRenderer(new ButtonRenderer());
-        fileTable.getColumn("Filename").setCellEditor(new ButtonEditor(fileTable));
-        
-        fileTable.getColumn("Actions").setCellRenderer(new TrashRenderer());
-        fileTable.getColumn("Actions").setCellEditor(new TrashEditor(fileTable, currentUserId));
-
-        JScrollPane scrollPane = new JScrollPane(fileTable);
-        dynamicPanel.add(scrollPane, BorderLayout.CENTER);
-        dynamicPanel.revalidate();
-        dynamicPanel.repaint();
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-
-    
     }
 //
 //    private JButton createDownloadButton(String filename) {
